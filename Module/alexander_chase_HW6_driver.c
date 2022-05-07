@@ -16,7 +16,8 @@
 #include <linux/fs.h>
 #include <linux/kernel.h>
 #include <linux/sched.h>
-#include <vmalloc.h>
+#include <linux/vmalloc.h>
+#include <linux/uaccess.h>
 
 #define MY_MAJOR 415
 #define MY_MINOR 0
@@ -32,12 +33,13 @@ MODULE_AUTHOR("Chase Alexander");
 MODULE_DESCRIPTION(
   "A simple program to modify your text to either all upper case, all lower case, or reversed"
 );
-MODULE_LICENCE("GPL");
+MODULE_LICENSE("GPL");
 
 //Data structure to keep track of how many times data is written
 struct driverDS {
   int bufferPos;  //Buffer position
   char buffer[200];
+  int operation;
 } driverDS;
 
 static int device_open(struct inode* inode, struct file* fs) {
@@ -67,11 +69,26 @@ static ssize_t device_read(struct file* fs, char __user* buf, size_t numBytes,
 
 static ssize_t device_write(struct file* fs, const char __user* buf,
   size_t numBytes, loff_t* offset) {
-  return 0;
+  struct driverDS* ds = (struct driverDS*)fs->private_data;
+
+  //Copy data to buffer
+  copy_from_user(ds->buffer, buf, numBytes);
+  ds->bufferPos = numBytes;
+  return numBytes;
 }
 
 static long device_ioctl(struct file* fs, unsigned int command,
   unsigned long data) {
+
+  struct driverDS* ds = (struct driverDS*)fs->private_data;
+
+  if (command >= 3 && command <= 5) {
+    ds->operation = (int)command;
+  } else {
+    printk(KERN_ERR "Failed in ioctl\n");  //Error
+    return -1;
+  }
+
   return 0;
 }
 
