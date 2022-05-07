@@ -68,7 +68,7 @@ static ssize_t device_read(struct file* fs, char __user* buf, size_t numBytes,
   loff_t* offset) {
 
   struct driverDS* ds = (struct driverDS*)fs->private_data;
-  int i, len;
+  int i, endPos;
   char temp;
 
   //Perform the appropriate action depending on what command # was provided

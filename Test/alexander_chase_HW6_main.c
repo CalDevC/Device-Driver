@@ -39,7 +39,7 @@ int main(int argc, char* argv[]) {
   //Test calls to demonstrate the functionality of each of my 
   //4 ioctl commands
 
-  printf("Original message: %s", message);
+  printf("\nOriginal message: %s\n", message);
 
   //3 - Make the message all upper case
   write(fd, message, sizeof(message));
