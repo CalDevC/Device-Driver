@@ -7,7 +7,9 @@
 *
 * File: alexander_chase_HW6_driver.c
 *
-* Description:
+* Description: This file defines and implements a character
+* device driver that will modify the user's input text to be
+* either all upper case, all lower case, inverse case or reversed.
 *
 **************************************************************/
 

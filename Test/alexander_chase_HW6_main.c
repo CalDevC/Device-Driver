@@ -7,7 +7,8 @@
 *
 * File: alexander_chase_HW6_main.c
 *
-* Description: A simple sample application to test my device driver
+* Description: A simple sample application to test each of my
+* device driver commands.
 *
 **************************************************************/
 
