@@ -38,7 +38,7 @@ MODULE_LICENSE("GPL");
 //Data structure to keep track of how many times data is written
 struct driverDS {
   int bufferPos;  //Buffer position
-  char buffer[200];
+  char buffer[512];
   int operation;
 } driverDS;
 
@@ -65,13 +65,34 @@ static int device_release(struct inode* inode, struct file* fs) {
 static ssize_t device_read(struct file* fs, char __user* buf, size_t numBytes,
   loff_t* offset) {
   struct driverDS* ds = (struct driverDS*)fs->private_data;
+  int i;
 
   switch (ds->operation) {
-    case 3:
+    case 3:  //Set to all upper case
+      printk(KERN_INFO "Setting to all upper case\n");
+      for (i = 0; i < ds->bufferPos; i++) {
+        if (ds->buffer[i] >= 97 && ds->buffer[i] <= 122) {
+          ds->buffer[i] = ds->buffer[i] - 32;
+        }
+      }
       break;
-    case 4:
+    case 4:  //Set to all lower case
+      printk(KERN_INFO "Setting to all lower case\n");
+      for (i = 0; i < ds->bufferPos; i++) {
+        if (ds->buffer[i] >= 65 && ds->buffer[i] <= 90) {
+          ds->buffer[i] = ds->buffer[i] + 32;
+        }
+      }
       break;
-    case 5:
+    case 5:  //Invert the case of each letter
+      printk(KERN_INFO "Inverting letter case\n");
+      for (i = 0; i < ds->bufferPos; i++) {
+        if (ds->buffer[i] >= 65 && ds->buffer[i] <= 90) {
+          ds->buffer[i] = ds->buffer[i] + 32;
+        } else if (ds->buffer[i] >= 97 && ds->buffer[i] <= 122) {
+          ds->buffer[i] = ds->buffer[i] - 32;
+        }
+      }
       break;
     default:
       copy_to_user(buf, ds->buffer, numBytes);
