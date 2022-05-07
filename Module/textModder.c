@@ -31,7 +31,7 @@ int actual_rx_size = 0;
 
 MODULE_AUTHOR("Chase Alexander");
 MODULE_DESCRIPTION(
-  "A simple program to modify your text to either all upper case, all lower case, or reversed"
+  "A simple program to modify input text to be either all upper case, all lower case, inverse case or reversed"
 );
 MODULE_LICENSE("GPL");
 
@@ -65,7 +65,8 @@ static int device_release(struct inode* inode, struct file* fs) {
 static ssize_t device_read(struct file* fs, char __user* buf, size_t numBytes,
   loff_t* offset) {
   struct driverDS* ds = (struct driverDS*)fs->private_data;
-  int i;
+  int i, len;
+  char temp;
 
   switch (ds->operation) {
     case 3:  //Set to all upper case
@@ -94,6 +95,17 @@ static ssize_t device_read(struct file* fs, char __user* buf, size_t numBytes,
         }
       }
       break;
+    case 6:  //Reverse the text
+      printk(KERN_INFO "Reversing text %d\n", ds->bufferPos);
+      len = ds->bufferPos - 2;
+      for (i = 0; i < ds->bufferPos / 2; i++) {
+        printk(KERN_INFO "POSITION %d: %c\n", i, ds->buffer[i]);
+        temp = ds->buffer[i];
+        ds->buffer[i] = ds->buffer[len];
+        ds->buffer[len--] = temp;
+        printk(KERN_INFO "POSITION %d AFTER: %c\n", i, ds->buffer[i]);
+      }
+      break;
     default:
       copy_to_user(buf, ds->buffer, numBytes);
       return -1;
@@ -118,7 +130,7 @@ static long device_ioctl(struct file* fs, unsigned int command,
 
   struct driverDS* ds = (struct driverDS*)fs->private_data;
 
-  if (command >= 3 && command <= 5) {
+  if (command >= 3 && command <= 6) {
     ds->operation = (int)command;
   } else {
     printk(KERN_ERR "Failed in ioctl\n");  //Error

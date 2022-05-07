@@ -51,5 +51,10 @@ int main(int argc, char* argv[]) {
   read(fd, read_buf, sizeof(message));
   printf("Message: %s\n", read_buf);
 
+  write(fd, message, sizeof(message));
+  ioctl(fd, 6, &info);
+  read(fd, read_buf, sizeof(message));
+  printf("Message: %s\n", read_buf);
+
   close(fd);
 }
