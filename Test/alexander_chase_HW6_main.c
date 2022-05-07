@@ -25,7 +25,7 @@ int main(int argc, char* argv[]) {
   char message[] = { "Sample Message" };
   char read_buf[512];
 
-  fd = open("/dev/TextModder", O_RDWR);
+  fd = open("/dev/textModder", O_RDWR);
   printf("returned from open file, %d\n", fd);
   if (fd < 0) {
     printf("Device Open Error\n");
@@ -36,6 +36,11 @@ int main(int argc, char* argv[]) {
   }
 
   //Do Work
+  write(fd, message, sizeof(message));
+  ioctl(fd, 3, &info);
+  read(fd, read_buf, sizeof(message));
+
+  printf("Message: %s\n", read_buf);
 
   close(fd);
 }

@@ -64,7 +64,22 @@ static int device_release(struct inode* inode, struct file* fs) {
 
 static ssize_t device_read(struct file* fs, char __user* buf, size_t numBytes,
   loff_t* offset) {
-  return 0;
+  struct driverDS* ds = (struct driverDS*)fs->private_data;
+
+  switch (ds->operation) {
+    case 3:
+      break;
+    case 4:
+      break;
+    case 5:
+      break;
+    default:
+      copy_to_user(buf, ds->buffer, numBytes);
+      return -1;
+  }
+
+  copy_to_user(buf, ds->buffer, numBytes);
+  return ds->bufferPos;
 }
 
 static ssize_t device_write(struct file* fs, const char __user* buf,
@@ -126,5 +141,8 @@ int init_module(void) {
 }
 
 void cleanup_module(void) {
-  return;
+  dev_t devno;
+  devno = MKDEV(MY_MAJOR, MY_MINOR);
+  unregister_chrdev_region(devno, 1);
+  cdev_del(&my_cdev);
 }

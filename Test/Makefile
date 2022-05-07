@@ -34,7 +34,7 @@
 #
 
 
-ROOTNAME=HelloWorldTest
+ROOTNAME=alexander_chase_HW6_main
 HW=
 FOPTION=
 RUNOPTIONS=
