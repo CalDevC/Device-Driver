@@ -37,11 +37,11 @@ MODULE_DESCRIPTION(
 );
 MODULE_LICENSE("GPL");
 
-//Data structure to keep track of how many times data is written
+//Data structure to hold all of the necessary info for my ioctls
 struct driverDS {
-  int bufferPos;  //Buffer position
-  char buffer[512];
-  int operation;
+  int bufferPos;    //Buffer position
+  char buffer[512]; //The user's message data
+  int operation;    //What command was called
 } driverDS;
 
 static int device_open(struct inode* inode, struct file* fs) {
@@ -66,15 +66,17 @@ static int device_release(struct inode* inode, struct file* fs) {
 
 static ssize_t device_read(struct file* fs, char __user* buf, size_t numBytes,
   loff_t* offset) {
+
   struct driverDS* ds = (struct driverDS*)fs->private_data;
   int i, len;
   char temp;
 
+  //Perform the appropriate action depending on what command # was provided
   switch (ds->operation) {
     case 3:  //Set to all upper case
       printk(KERN_INFO "Setting to all upper case\n");
       for (i = 0; i < ds->bufferPos; i++) {
-        if (ds->buffer[i] >= 97 && ds->buffer[i] <= 122) {
+        if (ds->buffer[i] >= 97 && ds->buffer[i] <= 122) { //If lower case
           ds->buffer[i] = ds->buffer[i] - 32;
         }
       }
@@ -82,7 +84,7 @@ static ssize_t device_read(struct file* fs, char __user* buf, size_t numBytes,
     case 4:  //Set to all lower case
       printk(KERN_INFO "Setting to all lower case\n");
       for (i = 0; i < ds->bufferPos; i++) {
-        if (ds->buffer[i] >= 65 && ds->buffer[i] <= 90) {
+        if (ds->buffer[i] >= 65 && ds->buffer[i] <= 90) { //If upper case
           ds->buffer[i] = ds->buffer[i] + 32;
         }
       }
@@ -90,29 +92,34 @@ static ssize_t device_read(struct file* fs, char __user* buf, size_t numBytes,
     case 5:  //Invert the case of each letter
       printk(KERN_INFO "Inverting letter case\n");
       for (i = 0; i < ds->bufferPos; i++) {
-        if (ds->buffer[i] >= 65 && ds->buffer[i] <= 90) {
+        if (ds->buffer[i] >= 65 && ds->buffer[i] <= 90) {  //If upper case
           ds->buffer[i] = ds->buffer[i] + 32;
-        } else if (ds->buffer[i] >= 97 && ds->buffer[i] <= 122) {
+        } else if (ds->buffer[i] >= 97 && ds->buffer[i] <= 122) { //If lower case
           ds->buffer[i] = ds->buffer[i] - 32;
         }
       }
       break;
     case 6:  //Reverse the text
       printk(KERN_INFO "Reversing text %d\n", ds->bufferPos);
-      len = ds->bufferPos - 2;
+
+      //The position of the right side iterator
+      endPos = ds->bufferPos - 2;
+
+      //Start at each end of the string and swap each character as the 
+      //iterators move towards the center of the string
       for (i = 0; i < ds->bufferPos / 2; i++) {
-        printk(KERN_INFO "POSITION %d: %c\n", i, ds->buffer[i]);
         temp = ds->buffer[i];
-        ds->buffer[i] = ds->buffer[len];
-        ds->buffer[len--] = temp;
-        printk(KERN_INFO "POSITION %d AFTER: %c\n", i, ds->buffer[i]);
+        ds->buffer[i] = ds->buffer[endPos];
+        ds->buffer[endPos--] = temp;
       }
       break;
     default:
+      //If the command number was invalid, leave the data unchanged
       copy_to_user(buf, ds->buffer, numBytes);
       return -1;
   }
 
+  //Copy the new data to the user's buffer
   copy_to_user(buf, ds->buffer, numBytes);
   return ds->bufferPos;
 }
@@ -132,10 +139,12 @@ static long device_ioctl(struct file* fs, unsigned int command,
 
   struct driverDS* ds = (struct driverDS*)fs->private_data;
 
+  //Set the command # in the data struct if it's valid
   if (command >= 3 && command <= 6) {
     ds->operation = (int)command;
   } else {
-    printk(KERN_ERR "Failed in ioctl\n");  //Error
+    //Error if invalid command #
+    printk(KERN_ERR "Failed in ioctl\n");
     return -1;
   }
 

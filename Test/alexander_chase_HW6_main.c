@@ -22,8 +22,8 @@
 
 int main(int argc, char* argv[]) {
   int fd, info;
-  long n1, n2, n3;
-  char message[] = { "Sample Message" };
+
+  char message[] = { "Sample Message" };  //The data to be sent
   char read_buf[512];
 
   fd = open("/dev/textModder", O_RDWR);
@@ -36,26 +36,34 @@ int main(int argc, char* argv[]) {
     printf("Device open success.\n");
   }
 
-  //Do Work
+  //Test calls to demonstrate the functionality of each of my 
+  //4 ioctl commands
+
+  printf("Original message: %s", message);
+
+  //3 - Make the message all upper case
   write(fd, message, sizeof(message));
   ioctl(fd, 3, &info);
   read(fd, read_buf, sizeof(message));
-  printf("Message: %s\n", read_buf);
+  printf("Message after setting all upper case: %s\n", read_buf);
 
+  //4 - Make the message all lower case
   write(fd, message, sizeof(message));
   ioctl(fd, 4, &info);
   read(fd, read_buf, sizeof(message));
-  printf("Message: %s\n", read_buf);
+  printf("Message after setting all lower case: %s\n", read_buf);
 
+  //5 - Invert the case of each char in the message
   write(fd, message, sizeof(message));
   ioctl(fd, 5, &info);
   read(fd, read_buf, sizeof(message));
-  printf("Message: %s\n", read_buf);
+  printf("Message after inverting case: %s\n", read_buf);
 
+  //6 - Reverse the message
   write(fd, message, sizeof(message));
   ioctl(fd, 6, &info);
   read(fd, read_buf, sizeof(message));
-  printf("Message: %s\n", read_buf);
+  printf("Message after reversal: %s\n", read_buf);
 
   close(fd);
 }
